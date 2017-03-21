@@ -41,17 +41,17 @@ logger.info("Noise detector started @ #{DateTime.now.strftime('%d/%m/%Y %H:%M:%S
 
 
 def self.check_required()
-  if !File.exists?('/usr/bin/arecord')
+  if !File.exist?('/usr/bin/arecord')
     warn "/usr/bin/arecord not found; install package alsa-utils"
     exit 1
   end
 
-  if !File.exists?('/usr/bin/sox')
+  if !File.exist?('/usr/bin/sox')
     warn "/usr/bin/sox not found; install package sox"
     exit 1
   end
 
-  if !File.exists?('/proc/asound/cards')
+  if !File.exist?('/proc/asound/cards')
     warn "/proc/asound/cards not found"
     exit 1
   end
@@ -84,6 +84,9 @@ optparse = OptionParser.new do |opts|
   opts.on("-t", "--test SOUND_CARD_ID", "Test soundcard with the given id") do |t|
     options[:test] = t
   end
+  opts.on("-f", "--file RECORD_FILENAME", "File to record sound to") do |f|
+    options[:file] = f
+  end
   opts.on("-k", "--kill", "Terminating background script") do |k|
     options[:kill] = k
   end
@@ -114,6 +117,10 @@ check_required()
 
 if options[:sample]
     SAMPLE_DURATION = options[:sample]
+end
+
+if options[:file]
+    RECORD_FILENAME = options[:file]
 end
 
 if options[:threshold]
@@ -159,7 +166,7 @@ pid = fork do
 	logger.info("Noise detector stopped @ #{DateTime.now.strftime('%d/%m/%Y %H:%M:%S')}")	
 	break
     end
-    rec_out = `/usr/bin/arecord -D plughw:#{options[:microphone]},0 -d #{SAMPLE_DURATION} -f #{FORMAT} -t wav #{RECORD_FILENAME} 2>/dev/null`
+    #rec_out = `/usr/bin/arecord -D plughw:#{options[:microphone]},0 -d #{SAMPLE_DURATION} -f #{FORMAT} -t wav #{RECORD_FILENAME} 2>/dev/null`
     out = `/usr/bin/sox -t .wav #{RECORD_FILENAME} -n stat 2>&1`
     out.match(/Maximum amplitude:\s+(.*)/m)
     amplitude = $1.to_f
